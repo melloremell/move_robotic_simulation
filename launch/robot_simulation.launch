@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<launch>
+	### ROBOT SIMULATION ###
+	<param name="use_sim_time" value="true" />
+	<arg name="world_file" value="-d $(find move_robotic_simulation)/world/MAPIRlab_furniture.world" />
+	<node pkg="stage_ros" type="stageros" name="stage_ros" respawn="false" args="$(arg world_file)" >#output="screen" >
+		<remap from="base_scan" to="laser_scan" />
+	</node>
+
+	## URDF model "robot" ###
+	<param name="robot_description" textfile="$(find move_robotic_simulation)/urdf/giraff.urdf" />
+	<param name="use_gui" value="False"/>
+	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />#output="screen" />
+	<node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />#output="screen" />
+
+	### MANUAL_OVERRIDE ###
+	<!-- <node name="rqt_robot_steering" pkg="rqt_robot_steering" type="rqt_robot_steering">
+		<param name="default_topic" value="/joy_teleop/cmd_vel"/>
+	</node> -->
+	<node pkg="twist_mux" type="twist_mux" name="twist_mux" >#output="screen" >
+		<rosparam command="load" file="$(find move_robotic_simulation)/cfg/twist_mux.yaml" />
+		<remap from="cmd_vel_out" to="cmd_vel"/>
+	</node>
+	<node name="keyboard_teleop" pkg="teleop_twist_keyboard" type="teleop_twist_keyboard.py" output="screen" >
+		<remap from="cmd_vel" to="/joy_teleop/cmd_vel" />
+	</node>
+
+	### RVIZ ###
+	<node name="rviz_player" pkg="rviz" type="rviz" args="-d $(find move_robotic_simulation)/rviz/move_robotic_simulation.rviz" />#output="screen" />
+</launch>

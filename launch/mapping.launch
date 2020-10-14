@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+
+<launch>
+	<arg name="launch_prefix" default="" />
+
+	### MAPPING SLAM ###
+	<!-- <param name="use_sim_time" value="true"/> -->
+	<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen" launch-prefix="$(arg launch_prefix)">
+
+		<remap from="scan" to="/laser_scan"/>
+		<param name="odom_frame" value="odom"/>
+		<param name="base_frame" value="base_link"/>
+		<param name="map_frame" value="map"/>
+
+		<param name="map_update_interval" value="0.5"/>
+
+		<param name="maxUrange" value="25"/>
+		<param name="maxRange" value="30"/>
+		<param name="particles" value="80"/>
+
+		<param name="linearUpdate" value="0.15"/>
+		<param name="angularUpdate" value="0.25"/>
+		<param name="temporalUpdate" value="1.0"/>
+		<param name="resampleThreshold" value="0.25"/>
+
+		<param name="xmin" value="-100.0"/>
+		<param name="ymin" value="-100.0"/>
+		<param name="xmax" value="100.0"/>
+		<param name="ymax" value="100.0"/>
+		<param name="delta" value="0.05"/>
+
+		<param name="sigma" value="0.05"/>
+		<param name="kernelSize" value="1"/>
+		<param name="lstep" value="0.05"/> 
+		<param name="astep" value="0.05"/>
+		<param name="iterations" value="5"/>
+		<param name="lsigma" value="0.075"/>
+		<param name="ogain" value="3.0"/>
+		<param name="lskip" value="0"/>
+		<!-- <param name="srr" value="0.1"/>
+		<param name="srt" value="0.2"/>
+		<param name="str" value="0.1"/>
+		<param name="stt" value="0.2"/> -->
+		<param name="llsamplerange" value="0.01"/>
+		<param name="llsamplestep" value="0.01"/>
+		<param name="lasamplerange" value="0.005"/>
+		<param name="lasamplestep" value="0.005"/>
+	</node>
+
+	### MOVE_BASE NAVIGATION ###
+	<arg name="global_planner_plugin" default="navfn/NavfnROS" />
+	<node pkg="move_base" type="move_base" respawn="false" name="move_base" launch-prefix="$(arg launch_prefix)">
+		## Planners
+		<rosparam file="$(find move_robotic_simulation)/cfg/simbot_global_planner_params.yaml" command="load" />
+		<rosparam file="$(find move_robotic_simulation)/cfg/simbot_local_planner_params.yaml" command="load" />
+
+		## Costmaps
+		<rosparam file="$(find move_robotic_simulation)/cfg/simbot_costmap_global_params.yaml" command="load" />
+		<rosparam file="$(find move_robotic_simulation)/cfg/simbot_costmap_local_params.yaml" command="load" />
+		<rosparam file="$(find move_robotic_simulation)/cfg/simbot_costmap_common_params.yaml" command="load" />    
+		<rosparam file="$(find move_robotic_simulation)/cfg/simbot_costmap_common_params.yaml" command="load" ns="global_costmap" />
+		<rosparam file="$(find move_robotic_simulation)/cfg/simbot_costmap_common_params.yaml" command="load" ns="local_costmap" />
+		<rosparam file="$(find move_robotic_simulation)/cfg/simbot_costmap_common_params.yaml" command="load" ns="global_costmap/obstacles" />
+		<rosparam file="$(find move_robotic_simulation)/cfg/simbot_costmap_common_params.yaml" command="load" ns="local_costmap/obstacles" />
+		<param name="base_global_planner" value="$(arg global_planner_plugin)"/>
+
+		<remap from="laser2_scan" to="laser_scan"/>#
+		<remap from="odom" to="odom"/>#
+		<remap from="cmd_vel" to="auto_cmd_vel"/>#
+	</node>
+</launch>
